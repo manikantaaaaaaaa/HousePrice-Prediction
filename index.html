@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>House Price Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 0;
+        }
+
+        .container {
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        input, select {
+            padding: 10px;
+            font-size: 16px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        input {
+            width: calc(100% - 22px);
+        }
+
+        button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background: #007BFF;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+
+        button:hover {
+            background: #0056b3;
+        }
+
+        #result {
+            margin-top: 20px;
+            padding: 10px;
+            background: #e9ecef;
+            border-left: 4px solid #007BFF;
+            font-size: 16px;
+        }
+
+        #error {
+            color: red;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>House Price Prediction</h1>
+        <form id="predictionForm">
+            <label for="houseId">Enter House ID:</label>
+            <input type="text" id="houseId" name="houseId" placeholder="e.g., 12345">
+
+            <label for="features">Enter Features (size (sqmt), bedrooms, bathrooms, floors):</label>
+            <input type="text" id="features" name="features" placeholder="e.g., 1500,3,2,1">
+
+            <label for="model">Select Model:</label>
+            <select id="model" name="model">
+                <option value="linear">Linear Regression</option>
+            </select>
+
+            <button type="button" id="predictButton">Predict</button>
+        </form>
+
+        <div id="result"></div>
+        <div id="error"></div>
+    </div>
+
+    <script>
+        document.getElementById('predictButton').addEventListener('click', async () => {
+            // Get the input values
+            const houseId = document.getElementById('houseId').value.trim();
+            const features = document.getElementById('features').value.trim().split(',').map(Number);
+            const model = document.getElementById('model').value;
+
+            // Clear previous messages
+            document.getElementById('result').textContent = '';
+            document.getElementById('error').textContent = '';
+
+            // Basic validation
+            if (!houseId || features.length === 0 || features.some(isNaN) || !model) {
+                document.getElementById('error').textContent = 'Please provide valid inputs.';
+                return;
+            }
+
+            try {
+                const response = await fetch('/predict', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ houseId, features, model })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    document.getElementById('result').textContent = `Predicted Price: Rs.${result.prediction.toFixed(2)}`;
+                } else {
+                    document.getElementById('result').textContent = `Error: ${result.error}`;
+                }
+            } catch (error) {
+                document.getElementById('error').textContent = `Error: ${error.message}`;
+            }
+        });
+    </script>
+</body>
+</html>
